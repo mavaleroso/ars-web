@@ -37,10 +37,10 @@ export default function LibAccountsAdd({ handleClick }) {
 
     const formik = useFormik({
         initialValues: {
-            uacs_object_code: null,
-            account_title: null,
-            rca_code: null,
-            uacs_subobject_code: null,
+            uacs_object_code: '',
+            account_title: '',
+            rca_code: '',
+            uacs_subobject_code: '',
         },
         validationSchema: Yup.object({
             uacs_object_code: Yup
@@ -142,7 +142,7 @@ export default function LibAccountsAdd({ handleClick }) {
                         component="form"
                     >
                         <Grid container>
-                            <Grid xs={12} sx={{ p: 1 }}>
+                            <Grid item xs={12} sx={{ p: 1 }}>
                                 <TextField
                                     fullWidth
                                     label="UACS Object Code"
@@ -156,7 +156,7 @@ export default function LibAccountsAdd({ handleClick }) {
                                     required
                                 />
                             </Grid>
-                            <Grid xs={12} sx={{ p: 1 }}>
+                            <Grid item xs={12} sx={{ p: 1 }}>
                                 <TextField
                                     fullWidth
                                     label="Account Title"
@@ -170,6 +170,7 @@ export default function LibAccountsAdd({ handleClick }) {
                                 />
                             </Grid>
                             <Grid
+                                item
                                 xs={12}
                                 md={6}
                                 sx={{ p: 1 }}
@@ -189,6 +190,7 @@ export default function LibAccountsAdd({ handleClick }) {
                                 />
                             </Grid>
                             <Grid
+                                item
                                 xs={12}
                                 md={6}
                                 sx={{ p: 1 }}
