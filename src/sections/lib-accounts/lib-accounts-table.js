@@ -42,7 +42,6 @@ const StripedDataGrid = styled(DataGrid)(({ theme }) => ({
           theme.palette.action.selectedOpacity +
           theme.palette.action.hoverOpacity,
         ),
-        // Reset on touch devices, it doesn't add specificity
         '@media (hover: none)': {
           backgroundColor: alpha(
             theme.palette.primary.main,
