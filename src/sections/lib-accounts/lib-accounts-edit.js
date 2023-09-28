@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation } from "@tanstack/react-query";
 import Button from '@mui/material/Button';
 import { styled } from '@mui/material/styles';
@@ -32,24 +32,18 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     },
 }));
 
-const fetchAccountData = async (id) => {
-    if (id) return await globalAxios.get(`libraries/accounts/fetch/${id}`);
-}
-
-
 const LibAccountsEdit = (props) => {
-    const { open, setOpen, id } = props;
+    const { open, setOpen, data } = props;
     const { enqueueSnackbar } = useSnackbar();
     const queryClient = useQueryClient();
-    let data = null;
-
 
     const formik = useFormik({
+        enableReinitialze: true,
         initialValues: {
-            uacs_object_code: data?.uacs_object_code,
-            account_title: data?.account_title,
-            rca_code: data?.rca_code,
-            uacs_subobject_code: data?.uacs_subobject_code,
+            uacs_object_code: data?.uacs_object_code || '',
+            account_title: data?.account_title || '',
+            rca_code: data?.rca_code || '',
+            uacs_subobject_code: data?.uacs_subobject_code || '',
         },
         validationSchema: Yup.object({
             uacs_object_code: Yup
@@ -76,51 +70,51 @@ const LibAccountsEdit = (props) => {
         }
     });
 
+    useEffect(() => {
+        formik.resetForm({
+            values: {
+                uacs_object_code: data?.uacs_object_code || '',
+                account_title: data?.account_title || '',
+                rca_code: data?.rca_code || '',
+                uacs_subobject_code: data?.uacs_subobject_code || '',
+            },
+        });
+    }, [data, formik.resetForm]);
+
 
     const handleRefetch = () => {
         queryClient.invalidateQueries('accounts');
     };
 
-    if (open) {
-        console.log(id);
-        fetchAccountData(id).then((res) => {
-            console.log(res);
-        });
-    }
-
-
-
     const handleClose = () => {
         setOpen(false);
     };
 
+    const { mutate, isLoading } = useMutation((values) => {
+        const response = globalAxios.post(`libraries/accounts/update/${data?.id}`, values, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Token ${window.sessionStorage.getItem('token')}`,
+            },
+        });
 
+        return response;
 
-    // const { mutate, isLoading } = useMutation((values) => {
-    //     const response = globalAxios.post('libraries/accounts/create', values, {
-    //         headers: {
-    //             "Content-Type": "application/json",
-    //             Authorization: `Token ${window.sessionStorage.getItem('token')}`,
-    //         },
-    //     });
-
-    //     return response;
-
-    // }, {
-    //     onSuccess: data => {
-    //         if (!data) throw Error;
-    //         enqueueSnackbar(data?.data.status, {
-    //             variant: 'success', anchorOrigin: { horizontal: 'center', vertical: 'top' }, autoHideDuration: 3000
-    //         });
-    //         handleRefetch();
-    //         handleClose();
-    //     },
-    //     onError: () => {
-    //         enqueueSnackbar('Something went wrong! Please try again.', {
-    //             variant: 'error', anchorOrigin: { horizontal: 'center', vertical: 'top' }, autoHideDuration: 3000
-    //         });
-    //     }
-    // });
+    }, {
+        onSuccess: data => {
+            if (!data) throw Error;
+            enqueueSnackbar(data?.data.status, {
+                variant: 'success', anchorOrigin: { horizontal: 'center', vertical: 'top' }, autoHideDuration: 3000
+            });
+            handleRefetch();
+            handleClose();
+        },
+        onError: () => {
+            enqueueSnackbar('Something went wrong! Please try again.', {
+                variant: 'error', anchorOrigin: { horizontal: 'center', vertical: 'top' }, autoHideDuration: 3000
+            });
+        }
+    });
 
     return (
         <div>

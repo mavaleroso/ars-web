@@ -2,7 +2,7 @@ import { format, parseISO } from 'date-fns';
 import {
   Box,
   Card,
-  Chip
+  Switch
 } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -13,7 +13,7 @@ import { alpha, styled } from '@mui/material/styles';
 import { useQuery } from '@tanstack/react-query';
 import globalAxios from '../../axios/index';
 import ConfirmDialog from 'src/components/confirmDialog';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import LibAccountsEdit from './lib-accounts-edit';
@@ -59,10 +59,13 @@ const fetchAccountsData = async () => {
 }
 
 
+
+
 export const LibAccountsTable = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [accountsEditOpen, setAccountsEditOpen] = useState(false);
   const [accountId, setAccountId] = useState(0);
+  const [accountData, setAccountData] = useState(null);
   const { enqueueSnackbar } = useSnackbar();
 
   const queryClient = useQueryClient();
@@ -70,6 +73,23 @@ export const LibAccountsTable = () => {
   const handleRefetch = () => {
     queryClient.invalidateQueries('accounts');
   };
+
+  const fetchAccountData = async (id) => {
+    return await globalAxios.get(`libraries/accounts/fetch/${id}`);
+  }
+
+  const handleFetchAccount = (id) => {
+    fetchAccountData(id).then(res => {
+      setAccountData(res.data);
+      setAccountsEditOpen(true);
+    });
+  }
+
+  const handleStatusChange = (values) => {
+    mutate({ id: values?.id, status: values?.status ? 0 : 1, type: 'update' });
+  };
+
+
 
   const columns = [
     {
@@ -85,8 +105,7 @@ export const LibAccountsTable = () => {
           </IconButton>
 
           <IconButton aria-label="edit" onClick={() => {
-            setAccountsEditOpen(true);
-            setAccountId(params.value);
+            handleFetchAccount(params.value);
           }}>
             <EditIcon fontSize="small" />
           </IconButton>
@@ -119,11 +138,7 @@ export const LibAccountsTable = () => {
       headerName: 'Status',
       width: 90,
       renderCell: (params) => {
-        if (params.value) {
-          return <Chip label="active" color="primary" />
-        } else {
-          return <Chip label="inactive" color="danger" />
-        }
+        return <Switch checked={params.value ? true : false} onClick={() => handleStatusChange(params.row)} />
       }
     },
     {
@@ -143,12 +158,27 @@ export const LibAccountsTable = () => {
   });
 
   const { mutate } = useMutation((values) => {
-    const response = globalAxios.post(`libraries/accounts/delete/${values}`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Token ${window.sessionStorage.getItem('token')}`,
-      },
-    });
+    let response = null;
+    switch (values?.type) {
+      case 'delete':
+        response = globalAxios.post(`libraries/accounts/delete/${values?.id}`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Token ${window.sessionStorage.getItem('token')}`,
+          },
+        });
+        break;
+      case 'update':
+        response = globalAxios.post(`libraries/accounts/update/${values?.id}`, values, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Token ${window.sessionStorage.getItem('token')}`,
+          },
+        });
+        break;
+      default:
+        break;
+    }
 
     return response;
 
@@ -178,7 +208,7 @@ export const LibAccountsTable = () => {
         open={confirmOpen}
         setOpen={setConfirmOpen}
         onConfirm={() => {
-          mutate(accountId);
+          mutate({ id: accountId, type: 'delete' });
         }}
       >
         Are you sure you want to delete this account?
@@ -186,7 +216,7 @@ export const LibAccountsTable = () => {
       <LibAccountsEdit
         open={accountsEditOpen}
         setOpen={setAccountsEditOpen}
-        id={accountId} />
+        data={accountData} />
       <Scrollbar>
         <Box sx={{ minWidth: 800, padding: 2 }}>
           <StripedDataGrid
