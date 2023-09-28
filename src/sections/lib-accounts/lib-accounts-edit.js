@@ -20,6 +20,8 @@ import { LoadingButton } from '@mui/lab';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
 import { SaveAltOutlined } from '@mui/icons-material';
 import { useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     '& .MuiDialogContent-root': {
@@ -30,24 +32,24 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     },
 }));
 
+const fetchAccountData = async (id) => {
+    if (id) return await globalAxios.get(`libraries/accounts/fetch/${id}`);
+}
 
-export default function LibAccountsAdd() {
+
+const LibAccountsEdit = (props) => {
+    const { open, setOpen, id } = props;
     const { enqueueSnackbar } = useSnackbar();
     const queryClient = useQueryClient();
+    let data = null;
 
-    const handleRefetch = () => {
-        queryClient.invalidateQueries('accounts');
-    };
-
-
-    const [open, setOpen] = React.useState(false);
 
     const formik = useFormik({
         initialValues: {
-            uacs_object_code: '',
-            account_title: '',
-            rca_code: '',
-            uacs_subobject_code: '',
+            uacs_object_code: data?.uacs_object_code,
+            account_title: data?.account_title,
+            rca_code: data?.rca_code,
+            uacs_subobject_code: data?.uacs_subobject_code,
         },
         validationSchema: Yup.object({
             uacs_object_code: Yup
@@ -74,52 +76,54 @@ export default function LibAccountsAdd() {
         }
     });
 
-    const handleClickOpen = () => {
-        setOpen(true);
+
+    const handleRefetch = () => {
+        queryClient.invalidateQueries('accounts');
     };
+
+    if (open) {
+        console.log(id);
+        fetchAccountData(id).then((res) => {
+            console.log(res);
+        });
+    }
+
+
+
     const handleClose = () => {
         setOpen(false);
     };
 
-    const { mutate, isLoading } = useMutation((values) => {
-        const response = globalAxios.post('libraries/accounts/create', values, {
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Token ${window.sessionStorage.getItem('token')}`,
-            },
-        });
 
-        return response;
 
-    }, {
-        onSuccess: data => {
-            if (!data) throw Error;
-            enqueueSnackbar(data?.data.status, {
-                variant: 'success', anchorOrigin: { horizontal: 'center', vertical: 'top' }, autoHideDuration: 3000
-            });
-            handleRefetch();
-            handleClose();
-        },
-        onError: () => {
-            enqueueSnackbar('Something went wrong! Please try again.', {
-                variant: 'error', anchorOrigin: { horizontal: 'center', vertical: 'top' }, autoHideDuration: 3000
-            });
-        }
-    });
+    // const { mutate, isLoading } = useMutation((values) => {
+    //     const response = globalAxios.post('libraries/accounts/create', values, {
+    //         headers: {
+    //             "Content-Type": "application/json",
+    //             Authorization: `Token ${window.sessionStorage.getItem('token')}`,
+    //         },
+    //     });
+
+    //     return response;
+
+    // }, {
+    //     onSuccess: data => {
+    //         if (!data) throw Error;
+    //         enqueueSnackbar(data?.data.status, {
+    //             variant: 'success', anchorOrigin: { horizontal: 'center', vertical: 'top' }, autoHideDuration: 3000
+    //         });
+    //         handleRefetch();
+    //         handleClose();
+    //     },
+    //     onError: () => {
+    //         enqueueSnackbar('Something went wrong! Please try again.', {
+    //             variant: 'error', anchorOrigin: { horizontal: 'center', vertical: 'top' }, autoHideDuration: 3000
+    //         });
+    //     }
+    // });
 
     return (
         <div>
-            <Button
-                startIcon={(
-                    <SvgIcon fontSize="small">
-                        <PlusIcon />
-                    </SvgIcon>
-                )}
-                variant="contained"
-                onClick={handleClickOpen}
-            >
-                Add
-            </Button>
             <BootstrapDialog
                 onClose={handleClose}
                 aria-labelledby="customized-dialog-title"
@@ -128,7 +132,7 @@ export default function LibAccountsAdd() {
                 maxWidth={'sm'}
             >
                 <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-                    Add Accounts
+                    Edit Accounts
                 </DialogTitle>
                 <IconButton
                     aria-label="close"
@@ -220,16 +224,18 @@ export default function LibAccountsAdd() {
                 </DialogContent>
                 <DialogActions>
                     <LoadingButton
-                        loading={isLoading}
+                        // loading={isLoading}
                         loadingPosition="start"
                         startIcon={<SaveAltOutlined />}
                         variant="contained"
                         autoFocus onClick={formik.handleSubmit}
                     >
-                        Create
+                        Update
                     </LoadingButton>
                 </DialogActions>
             </BootstrapDialog>
         </div>
     );
 }
+
+export default LibAccountsEdit;

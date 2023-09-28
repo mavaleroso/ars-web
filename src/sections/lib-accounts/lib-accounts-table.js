@@ -1,152 +1,218 @@
-import PropTypes from 'prop-types';
 import { format, parseISO } from 'date-fns';
 import {
-  Avatar,
   Box,
   Card,
-  Checkbox,
-  Stack,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TablePagination,
-  TableRow,
-  Typography
+  Chip
 } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import { Scrollbar } from 'src/components/scrollbar';
-import { getInitials } from 'src/utils/get-initials';
+import { DataGrid, GridToolbar, gridClasses } from '@mui/x-data-grid';
+import { alpha, styled } from '@mui/material/styles';
+import { useQuery } from '@tanstack/react-query';
+import globalAxios from '../../axios/index';
+import ConfirmDialog from 'src/components/confirmDialog';
+import { useState } from 'react';
+import { useSnackbar } from 'notistack';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import LibAccountsEdit from './lib-accounts-edit';
 
-export const LibAccountsTable = (props) => {
-  const {
-    count = 0,
-    items = [],
-    onDeselectAll,
-    onDeselectOne,
-    onPageChange = () => { },
-    onRowsPerPageChange,
-    onSelectAll,
-    onSelectOne,
-    page = 0,
-    rowsPerPage = 0,
-    selected = []
-  } = props;
 
-  const selectedSome = (selected.length > 0) && (selected.length < items.length);
-  const selectedAll = (items.length > 0) && (selected.length === items.length);
+const ODD_OPACITY = 0.2;
+
+const StripedDataGrid = styled(DataGrid)(({ theme }) => ({
+  [`& .${gridClasses.row}.even`]: {
+    backgroundColor: theme.palette.grey[200],
+    '&:hover, &.Mui-hovered': {
+      backgroundColor: alpha(theme.palette.primary.main, ODD_OPACITY),
+      '@media (hover: none)': {
+        backgroundColor: 'transparent',
+      },
+    },
+    '&.Mui-selected': {
+      backgroundColor: alpha(
+        theme.palette.primary.main,
+        ODD_OPACITY + theme.palette.action.selectedOpacity,
+      ),
+      '&:hover, &.Mui-hovered': {
+        backgroundColor: alpha(
+          theme.palette.primary.main,
+          ODD_OPACITY +
+          theme.palette.action.selectedOpacity +
+          theme.palette.action.hoverOpacity,
+        ),
+        // Reset on touch devices, it doesn't add specificity
+        '@media (hover: none)': {
+          backgroundColor: alpha(
+            theme.palette.primary.main,
+            ODD_OPACITY + theme.palette.action.selectedOpacity,
+          ),
+        },
+      },
+    },
+  },
+}));
+
+const fetchAccountsData = async () => {
+  return await globalAxios.get('libraries/accounts/fetch');
+}
+
+
+export const LibAccountsTable = () => {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [accountsEditOpen, setAccountsEditOpen] = useState(false);
+  const [accountId, setAccountId] = useState(0);
+  const { enqueueSnackbar } = useSnackbar();
+
+  const queryClient = useQueryClient();
+
+  const handleRefetch = () => {
+    queryClient.invalidateQueries('accounts');
+  };
+
+  const columns = [
+    {
+      field: 'id',
+      headerName: '',
+      renderCell: (params) => {
+        return <div>
+          <IconButton aria-label="delete" onClick={() => {
+            setConfirmOpen(true);
+            setAccountId(params.value);
+          }}>
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+
+          <IconButton aria-label="edit" onClick={() => {
+            setAccountsEditOpen(true);
+            setAccountId(params.value);
+          }}>
+            <EditIcon fontSize="small" />
+          </IconButton>
+        </div>
+      }
+    },
+    {
+      field: 'uacs_object_code',
+      headerName: 'UACS Object Code',
+      minWidth: 150,
+    },
+    {
+      field: 'account_title',
+      headerName: 'Account Title',
+      flex: 1,
+      minWidth: 300,
+    },
+    {
+      field: 'rca_code',
+      headerName: 'RCA Code',
+      minWidth: 100,
+    },
+    {
+      field: 'uacs_subobject_code',
+      headerName: 'UACS Subobject Code',
+      width: 110,
+    },
+    {
+      field: 'status',
+      headerName: 'Status',
+      width: 90,
+      renderCell: (params) => {
+        if (params.value) {
+          return <Chip label="active" color="primary" />
+        } else {
+          return <Chip label="inactive" color="danger" />
+        }
+      }
+    },
+    {
+      field: 'created_at',
+      headerName: 'Created At',
+      width: 200,
+      renderCell: (params) => (
+        <span>
+          {format(parseISO(params.value), 'MMM d, Y h:mm a')}
+        </span>
+      ),
+    },
+  ];
+
+  const { data, error, isLoading } = useQuery(['accounts'], fetchAccountsData, {
+    refetchOnWindowFocus: false
+  });
+
+  const { mutate } = useMutation((values) => {
+    const response = globalAxios.post(`libraries/accounts/delete/${values}`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${window.sessionStorage.getItem('token')}`,
+      },
+    });
+
+    return response;
+
+  }, {
+    onSuccess: data => {
+      if (!data) throw Error;
+      enqueueSnackbar(data?.data.status, {
+        variant: 'success', anchorOrigin: { horizontal: 'center', vertical: 'top' }, autoHideDuration: 3000
+      });
+      handleRefetch();
+    },
+    onError: () => {
+      enqueueSnackbar('Something went wrong! Please try again.', {
+        variant: 'error', anchorOrigin: { horizontal: 'center', vertical: 'top' }, autoHideDuration: 3000
+      });
+    }
+  });
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
 
   return (
     <Card>
+      <ConfirmDialog
+        title="Delete Account?"
+        open={confirmOpen}
+        setOpen={setConfirmOpen}
+        onConfirm={() => {
+          mutate(accountId);
+        }}
+      >
+        Are you sure you want to delete this account?
+      </ConfirmDialog>
+      <LibAccountsEdit
+        open={accountsEditOpen}
+        setOpen={setAccountsEditOpen}
+        id={accountId} />
       <Scrollbar>
-        <Box sx={{ minWidth: 800 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    checked={selectedAll}
-                    indeterminate={selectedSome}
-                    onChange={(event) => {
-                      if (event.target.checked) {
-                        onSelectAll?.();
-                      } else {
-                        onDeselectAll?.();
-                      }
-                    }}
-                  />
-                </TableCell>
-                <TableCell>
-                  Uacs Object Code
-                </TableCell>
-                <TableCell>
-                  Account Title
-                </TableCell>
-                <TableCell>
-                  RCA Code
-                </TableCell>
-                <TableCell>
-                  Uacs Subject Code
-                </TableCell>
-                <TableCell>
-                  Status
-                </TableCell>
-                <TableCell>
-                  Created At
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {items.map((libAccounts) => {
-                const isSelected = selected.includes(libAccounts.id);
-                const createdAt = format(parseISO(libAccounts.created_at), 'MMM d, Y h:mm a');
-
-                return (
-                  <TableRow
-                    hover
-                    key={libAccounts.id}
-                    selected={isSelected}
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={isSelected}
-                        onChange={(event) => {
-                          if (event.target.checked) {
-                            onSelectOne?.(libAccounts.id);
-                          } else {
-                            onDeselectOne?.(libAccounts.id);
-                          }
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {libAccounts.uacs_object_code}
-                    </TableCell>
-                    <TableCell>
-                      {libAccounts.account_title}
-                    </TableCell>
-                    <TableCell>
-                      {libAccounts.rca_code}
-                    </TableCell>
-                    <TableCell>
-                      {libAccounts.uacs_subobject_code}
-                    </TableCell>
-                    <TableCell>
-                      <Switch checked={libAccounts.status} />
-                    </TableCell>
-                    <TableCell>
-                      {createdAt}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+        <Box sx={{ minWidth: 800, padding: 2 }}>
+          <StripedDataGrid
+            loading={isLoading}
+            getRowClassName={(params) =>
+              params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
+            }
+            rows={data?.data || []}
+            columns={columns}
+            slots={{ toolbar: GridToolbar }}
+            slotProps={{
+              toolbar: {
+                showQuickFilter: true,
+              },
+            }}
+            initialState={{
+              pagination: {
+                paginationModel: {
+                  pageSize: 10,
+                },
+              },
+            }}
+            pageSizeOptions={[10]}
+          />
         </Box>
       </Scrollbar>
-      <TablePagination
-        component="div"
-        count={count}
-        onPageChange={onPageChange}
-        onRowsPerPageChange={onRowsPerPageChange}
-        page={page}
-        rowsPerPage={rowsPerPage}
-        rowsPerPageOptions={[5, 10, 25]}
-      />
     </Card>
-  );
-};
-
-LibAccountsTable.propTypes = {
-  count: PropTypes.number,
-  items: PropTypes.array,
-  onDeselectAll: PropTypes.func,
-  onDeselectOne: PropTypes.func,
-  onPageChange: PropTypes.func,
-  onRowsPerPageChange: PropTypes.func,
-  onSelectAll: PropTypes.func,
-  onSelectOne: PropTypes.func,
-  page: PropTypes.number,
-  rowsPerPage: PropTypes.number,
-  selected: PropTypes.array
+  )
 };
