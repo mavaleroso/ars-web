@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation } from "@tanstack/react-query";
 import Button from '@mui/material/Button';
 import { styled } from '@mui/material/styles';
@@ -20,6 +20,8 @@ import { LoadingButton } from '@mui/lab';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
 import { SaveAltOutlined } from '@mui/icons-material';
 import { useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     '& .MuiDialogContent-root': {
@@ -30,24 +32,18 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     },
 }));
 
-
-export default function LibAccountsAdd() {
+const LibAccountsEdit = (props) => {
+    const { open, setOpen, data } = props;
     const { enqueueSnackbar } = useSnackbar();
     const queryClient = useQueryClient();
 
-    const handleRefetch = () => {
-        queryClient.invalidateQueries('accounts');
-    };
-
-
-    const [open, setOpen] = React.useState(false);
-
     const formik = useFormik({
+        enableReinitialze: true,
         initialValues: {
-            uacs_object_code: '',
-            account_title: '',
-            rca_code: '',
-            uacs_subobject_code: '',
+            uacs_object_code: data?.uacs_object_code || '',
+            account_title: data?.account_title || '',
+            rca_code: data?.rca_code || '',
+            uacs_subobject_code: data?.uacs_subobject_code || '',
         },
         validationSchema: Yup.object({
             uacs_object_code: Yup
@@ -74,15 +70,28 @@ export default function LibAccountsAdd() {
         }
     });
 
-    const handleClickOpen = () => {
-        setOpen(true);
+    useEffect(() => {
+        formik.resetForm({
+            values: {
+                uacs_object_code: data?.uacs_object_code || '',
+                account_title: data?.account_title || '',
+                rca_code: data?.rca_code || '',
+                uacs_subobject_code: data?.uacs_subobject_code || '',
+            },
+        });
+    }, [data, formik.resetForm]);
+
+
+    const handleRefetch = () => {
+        queryClient.invalidateQueries('accounts');
     };
+
     const handleClose = () => {
         setOpen(false);
     };
 
     const { mutate, isLoading } = useMutation((values) => {
-        const response = globalAxios.post('libraries/accounts/create', values, {
+        const response = globalAxios.post(`libraries/accounts/update/${data?.id}`, values, {
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Token ${window.sessionStorage.getItem('token')}`,
@@ -109,17 +118,6 @@ export default function LibAccountsAdd() {
 
     return (
         <div>
-            <Button
-                startIcon={(
-                    <SvgIcon fontSize="small">
-                        <PlusIcon />
-                    </SvgIcon>
-                )}
-                variant="contained"
-                onClick={handleClickOpen}
-            >
-                Add
-            </Button>
             <BootstrapDialog
                 onClose={handleClose}
                 aria-labelledby="customized-dialog-title"
@@ -128,7 +126,7 @@ export default function LibAccountsAdd() {
                 maxWidth={'sm'}
             >
                 <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-                    Add Accounts
+                    Edit Accounts
                 </DialogTitle>
                 <IconButton
                     aria-label="close"
@@ -220,16 +218,18 @@ export default function LibAccountsAdd() {
                 </DialogContent>
                 <DialogActions>
                     <LoadingButton
-                        loading={isLoading}
+                        // loading={isLoading}
                         loadingPosition="start"
                         startIcon={<SaveAltOutlined />}
                         variant="contained"
                         autoFocus onClick={formik.handleSubmit}
                     >
-                        Create
+                        Update
                     </LoadingButton>
                 </DialogActions>
             </BootstrapDialog>
         </div>
     );
 }
+
+export default LibAccountsEdit;

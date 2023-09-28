@@ -30,7 +30,7 @@ export default function CdjImport() {
         initialValues: {
             attachment: null,
             description: '',
-            month: null,
+            month: '',
             year: '',
             remarks: ''
         },
@@ -93,7 +93,8 @@ export default function CdjImport() {
                 onClose={handleClose}
                 aria-labelledby="customized-dialog-title"
                 open={open}
-                fullWidth={'true'} maxWidth={'sm'}
+                fullWidth
+                maxWidth={'sm'}
             >
                 <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
                     Import CDJ
@@ -146,6 +147,7 @@ export default function CdjImport() {
 
                         <Grid container>
                             <Grid
+                                item
                                 xs={12}
                                 md={6}
                                 sx={{ p: 1 }}
@@ -163,7 +165,7 @@ export default function CdjImport() {
                                         name="month" // Add the "name" prop to match the field name in initialValues
                                         error={formik.touched.month && Boolean(formik.errors.month)}
                                     >
-                                        <MenuItem value=""><em>None</em></MenuItem>
+                                        <MenuItem value=''><em>None</em></MenuItem>
                                         <MenuItem value='January'>January</MenuItem>
                                         <MenuItem value='February'>February</MenuItem>
                                         <MenuItem value='March'>March</MenuItem>
@@ -183,6 +185,7 @@ export default function CdjImport() {
                                 </FormControl>
                             </Grid>
                             <Grid
+                                item
                                 xs={12}
                                 md={6}
                                 sx={{ p: 1 }}
