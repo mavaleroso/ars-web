@@ -7,7 +7,6 @@ import { Box, Button, Container, Stack, SvgIcon, Typography } from '@mui/materia
 import { useSelection } from 'src/hooks/use-selection';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { applyPagination } from 'src/utils/apply-pagination';
-import { CdjSearch } from 'src/sections/cdj/cdj-search';
 import { CdjTable } from 'src/sections/cdj/cdj-table';
 import CdjImport from 'src/sections/cdj/cdj-import';
 
@@ -118,20 +117,7 @@ const Page = () => {
                   </Button>
                 </Stack>
               </Stack>
-              <div>
-                <Button
-                  startIcon={(
-                    <SvgIcon fontSize="small">
-                      <PlusIcon />
-                    </SvgIcon>
-                  )}
-                  variant="contained"
-                >
-                  Add
-                </Button>
-              </div>
             </Stack>
-            <CdjSearch />
             <CdjTable
               count={data.length}
               items={cdj}

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useCallback, useState } from 'react';
+import { useMutation } from "@tanstack/react-query";
 import Button from '@mui/material/Button';
 import { styled } from '@mui/material/styles';
 import Dialog from '@mui/material/Dialog';
@@ -13,6 +14,8 @@ import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
 import { Alert, Box, FormControl, FormHelperText, Grid, InputLabel, MenuItem, Select, SvgIcon } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import globalAxios from '../../axios/index';
+import { useSnackbar } from 'notistack';
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     '& .MuiDialogContent-root': {
@@ -23,8 +26,9 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     },
 }));
 
-export default function CdjImport() {
+export default function CdjImport({ handleClick }) {
     const [open, setOpen] = React.useState(false);
+    const { enqueueSnackbar } = useSnackbar();
 
     const formik = useFormik({
         initialValues: {
@@ -60,13 +64,39 @@ export default function CdjImport() {
         }),
         onSubmit: async (values, helpers) => {
             try {
-                // await auth.signUp(values.description, values.month, values.year, values);
-                // router.push('/');
+                mutate(values);
             } catch (err) {
                 helpers.setStatus({ success: false });
                 helpers.setErrors({ submit: err.message });
                 helpers.setSubmitting(false);
             }
+        }
+    });
+
+
+    const { mutate, isLoading } = useMutation((values) => {
+        const response = globalAxios.post('disbursement_journal/import', values, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+                Authorization: `Token ${window.sessionStorage.getItem('token')}`,
+            },
+        });
+
+        return response;
+
+    }, {
+        onSuccess: data => {
+            if (!data) throw Error;
+            enqueueSnackbar(data.data.status, {
+                variant: 'success', anchorOrigin: { horizontal: 'right', vertical: 'bottom' }, autoHideDuration: 3000
+            });
+            handleClick();
+            handleClose();
+        },
+        onError: () => {
+            enqueueSnackbar('Something went wrong! Please try again.', {
+                variant: 'error', anchorOrigin: { horizontal: 'right', vertical: 'bottom' }, autoHideDuration: 3000
+            });
         }
     });
 
@@ -228,6 +258,9 @@ export default function CdjImport() {
                                 fullWidth
                                 label="Remarks"
                                 name="remarks"
+                                onBlur={formik.handleBlur}
+                                onChange={formik.handleChange}
+                                value={formik.values.remarks}
                                 multiline
                                 minRows={3}
                             />
