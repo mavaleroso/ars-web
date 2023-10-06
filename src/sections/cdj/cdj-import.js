@@ -142,7 +142,7 @@ export default function CdjImport({ handleClick }) {
                     <CloseIcon />
                 </IconButton>
                 <DialogContent dividers>
-                    <Alert severity="info">Upload excel file for CDJ based on its format. You can also download the sample format provided below.</Alert>
+                    <Alert severity="info">Upload excel file for CDJ based on its format. You can also download the <a href="/files/cdj-sample.xlsx">sample format</a> provided.</Alert>
                     <Box
                         component="form"
                     >
@@ -161,6 +161,7 @@ export default function CdjImport({ handleClick }) {
                                 onBlur={formik.handleBlur}
                                 error={formik.touched.attachment && Boolean(formik.errors.attachment)}
                                 helperText={formik.touched.attachment && formik.errors.attachment}
+                                required
                             />
                             <TextField
                                 sx={{ mt: 1 }}
@@ -172,6 +173,7 @@ export default function CdjImport({ handleClick }) {
                                 value={formik.values.description}
                                 error={!!(formik.touched.description && formik.errors.description)}
                                 helperText={formik.touched.description && formik.errors.description}
+                                required
                             />
                         </Grid>
 

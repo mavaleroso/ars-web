@@ -10,60 +10,7 @@ import { applyPagination } from 'src/utils/apply-pagination';
 import { CdjTable } from 'src/sections/cdj/cdj-table';
 import CdjImport from 'src/sections/cdj/cdj-import';
 
-const now = new Date();
-
-const data = [
-  {
-    id: '5e887ac47eed253091be10cb',
-    description: 'CHECK/ADA Disbursement Journal - MDS 2023',
-    year: 2022,
-    avatar: '/assets/avatars/avatar-carson-darrin.png',
-    createdAt: subDays(subHours(now, 7), 1).getTime(),
-    month: 'September',
-    name: 'Carson Darrin',
-    remarks: 'test remarks'
-  },
-];
-
-const useCdj = (page, rowsPerPage) => {
-  return useMemo(
-    () => {
-      return applyPagination(data, page, rowsPerPage);
-    },
-    [page, rowsPerPage]
-  );
-};
-
-const useCdjIds = (cdj) => {
-  return useMemo(
-    () => {
-      return cdj.map((cdj) => cdj.id);
-    },
-    [cdj]
-  );
-};
-
 const Page = () => {
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const cdj = useCdj(page, rowsPerPage);
-  const cdjIds = useCdjIds(cdj);
-  const cdjSelection = useSelection(cdjIds);
-
-  const handlePageChange = useCallback(
-    (event, value) => {
-      setPage(value);
-    },
-    []
-  );
-
-  const handleRowsPerPageChange = useCallback(
-    (event) => {
-      setRowsPerPage(event.target.value);
-    },
-    []
-  );
-
   return (
     <>
       <Head>
@@ -118,19 +65,7 @@ const Page = () => {
                 </Stack>
               </Stack>
             </Stack>
-            <CdjTable
-              count={data.length}
-              items={cdj}
-              onDeselectAll={cdjSelection.handleDeselectAll}
-              onDeselectOne={cdjSelection.handleDeselectOne}
-              onPageChange={handlePageChange}
-              onRowsPerPageChange={handleRowsPerPageChange}
-              onSelectAll={cdjSelection.handleSelectAll}
-              onSelectOne={cdjSelection.handleSelectOne}
-              page={page}
-              rowsPerPage={rowsPerPage}
-              selected={cdjSelection.selected}
-            />
+            <CdjTable />
           </Stack>
         </Container>
       </Box>
