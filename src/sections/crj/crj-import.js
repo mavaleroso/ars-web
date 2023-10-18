@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useCallback, useState } from 'react';
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import Button from '@mui/material/Button';
 import { styled } from '@mui/material/styles';
 import Dialog from '@mui/material/Dialog';
@@ -26,19 +26,14 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     },
 }));
 
-export default function CdjImport() {
+export default function CrjImport({ handleClick }) {
     const [open, setOpen] = React.useState(false);
     const { enqueueSnackbar } = useSnackbar();
-    const queryClient = useQueryClient();
-
-    const handleRefetch = () => {
-        queryClient.invalidateQueries('cdj');
-    };
 
     const formik = useFormik({
         initialValues: {
             attachment: null,
-            description: '',
+            sheet: '',
             month: '',
             year: '',
             remarks: ''
@@ -50,10 +45,10 @@ export default function CdjImport() {
                 .test('fileType', 'Invalid file type', (value) =>
                     value && ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'].includes(value.type)
                 ),
-            description: Yup
+            sheet: Yup
                 .string()
                 .max(255)
-                .required('Description is required'),
+                .required('Sheet is required'),
             month: Yup
                 .string()
                 .max(255)
@@ -80,7 +75,7 @@ export default function CdjImport() {
 
 
     const { mutate, isLoading } = useMutation((values) => {
-        const response = globalAxios.post('disbursement_journal/import', values, {
+        const response = globalAxios.post('receipts_journal/import', values, {
             headers: {
                 "Content-Type": "multipart/form-data",
                 Authorization: `Token ${window.sessionStorage.getItem('token')}`,
@@ -93,15 +88,14 @@ export default function CdjImport() {
         onSuccess: data => {
             if (!data) throw Error;
             enqueueSnackbar(data.data.status, {
-                variant: 'success', anchorOrigin: { horizontal: 'center', vertical: 'top' }, autoHideDuration: 3000
+                variant: 'success', anchorOrigin: { horizontal: 'right', vertical: 'bottom' }, autoHideDuration: 3000
             });
-            // handleClick();
-            handleRefetch();
+            handleClick();
             handleClose();
         },
         onError: () => {
             enqueueSnackbar('Something went wrong! Please try again.', {
-                variant: 'error', anchorOrigin: { horizontal: 'center', vertical: 'top' }, autoHideDuration: 3000
+                variant: 'error', anchorOrigin: { horizontal: 'right', vertical: 'bottom' }, autoHideDuration: 3000
             });
         }
     });
@@ -133,7 +127,7 @@ export default function CdjImport() {
                 maxWidth={'sm'}
             >
                 <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-                    Import CDJ
+                    Import CRJ
                 </DialogTitle>
                 <IconButton
                     aria-label="close"
@@ -148,7 +142,7 @@ export default function CdjImport() {
                     <CloseIcon />
                 </IconButton>
                 <DialogContent dividers>
-                    <Alert severity="info">Upload excel file for CDJ based on its format. You can also download the <a href="/files/cdj-sample.xlsx">sample format</a> provided.</Alert>
+                    <Alert severity="info">Upload excel file for CRJ based on its format. You can also download the <a href="/files/crj-sample.xlsx">sample format</a> provided.</Alert>
                     <Box
                         component="form"
                     >
@@ -172,13 +166,13 @@ export default function CdjImport() {
                             <TextField
                                 sx={{ mt: 1 }}
                                 fullWidth
-                                label="Description"
-                                name="description"
+                                label="Sheet"
+                                name="sheet"
                                 onBlur={formik.handleBlur}
                                 onChange={formik.handleChange}
-                                value={formik.values.description}
-                                error={!!(formik.touched.description && formik.errors.description)}
-                                helperText={formik.touched.description && formik.errors.description}
+                                value={formik.values.sheet}
+                                error={!!(formik.touched.sheet && formik.errors.sheet)}
+                                helperText={formik.touched.sheet && formik.errors.sheet}
                                 required
                             />
                         </Grid>
