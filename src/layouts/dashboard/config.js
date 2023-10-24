@@ -20,6 +20,15 @@ export const items = [
     )
   },
   {
+    title: 'CRJ',
+    path: '/crj',
+    icon: (
+      <SvgIcon fontSize="small">
+        <FolderIcon />
+      </SvgIcon>
+    )
+  },
+  {
     title: 'CDJ',
     path: '/cdj',
     icon: (
