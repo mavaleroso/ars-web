@@ -27,7 +27,7 @@ import ConfirmDialog from 'src/components/confirmDialog';
 import { useEffect, useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import CDJView from './cdj-view';
+import CRJView from './crj-view';
 
 const ODD_OPACITY = 0.2;
 
@@ -64,31 +64,31 @@ const StripedDataGrid = styled(DataGrid)(({ theme }) => ({
   },
 }));
 
-const fetchCDJ = async () => {
-  return await globalAxios.get('disbursement_journal/cdj/fetch');
+const fetchCRJ = async () => {
+  return await globalAxios.get('receipts_journal/crj/fetch');
 }
 
-export const CdjTable = () => {
-  const [CDJEditOpen, setCDJEditOpen] = useState(false);
-  const [CDJData, setCDJData] = useState(null);
+export const CrjTable = () => {
+  const [CRJEditOpen, setCRJEditOpen] = useState(false);
+  const [CRJData, setCRJData] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [CDJID, setCDJID] = useState(0);
+  const [CRJID, setCRJID] = useState(0);
   const { enqueueSnackbar } = useSnackbar();
   const queryClient = useQueryClient();
 
   const handleRefetch = () => {
-    queryClient.invalidateQueries('cdj');
+    queryClient.invalidateQueries('crj');
   };
 
 
-  const fetchCDJData = async (id) => {
-    return await globalAxios.get(`disbursement_journal/fetch/${id}`);
+  const fetchCRJData = async (id) => {
+    return await globalAxios.get(`receipts_journal/fetch/${id}`);
   }
 
-  const handleFetchCDJ = (id) => {
-    fetchCDJData(id).then(res => {
-      setCDJData(res.data);
-      setCDJEditOpen(true);
+  const handleFetchCRJ = (id) => {
+    fetchCRJData(id).then(res => {
+      setCRJData(res.data);
+      setCRJEditOpen(true);
     });
   }
 
@@ -102,7 +102,7 @@ export const CdjTable = () => {
         return <div>
           <IconButton aria-label="delete" onClick={() => {
             setConfirmOpen(true);
-            setCDJID(params.value);
+            setCRJID(params.value);
           }}>
             <DeleteIcon fontSize="small" />
           </IconButton>
@@ -113,7 +113,7 @@ export const CdjTable = () => {
             <EditIcon fontSize="small" />
           </IconButton>
           <IconButton aria-label="view" onClick={() => {
-            handleFetchCDJ(params.value);
+            handleFetchCRJ(params.value);
           }}>
             <VisibilityIcon fontSize="small" />
           </IconButton>
@@ -121,8 +121,8 @@ export const CdjTable = () => {
       }
     },
     {
-      field: 'description',
-      headerName: 'Description',
+      field: 'sheet_no',
+      headerName: 'Sheet No',
       minWidth: 300,
     },
     {
@@ -153,7 +153,7 @@ export const CdjTable = () => {
     },
   ];
 
-  const { data, error, isLoading } = useQuery(['cdj'], fetchCDJ, {
+  const { data, error, isLoading } = useQuery(['crj'], fetchCRJ, {
     refetchOnWindowFocus: false
   });
 
@@ -161,7 +161,7 @@ export const CdjTable = () => {
     let response = null;
     switch (values?.type) {
       case 'delete':
-        response = globalAxios.post(`disbursement_journal/delete/${values?.id}`, {
+        response = globalAxios.post(`receipts_journal/delete/${values?.id}`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Token ${window.sessionStorage.getItem('token')}`,
@@ -169,7 +169,7 @@ export const CdjTable = () => {
         });
         break;
       case 'update':
-        response = globalAxios.post(`disbursement_journal/cdj/update/${values?.id}`, values, {
+        response = globalAxios.post(`receipts_journal/crj/update/${values?.id}`, values, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Token ${window.sessionStorage.getItem('token')}`,
@@ -200,19 +200,19 @@ export const CdjTable = () => {
   return (
     <Card>
       <ConfirmDialog
-        title="Delete CDJ?"
+        title="Delete CRJ?"
         open={confirmOpen}
         setOpen={setConfirmOpen}
         onConfirm={() => {
-          mutate({ id: CDJID, type: 'delete' });
+          mutate({ id: CRJID, type: 'delete' });
         }}
       >
         Are you sure you want to delete this account?
       </ConfirmDialog>
-      <CDJView
-        open={CDJEditOpen}
-        setOpen={setCDJEditOpen}
-        data={CDJData} />
+      <CRJView
+        open={CRJEditOpen}
+        setOpen={setCRJEditOpen}
+        data={CRJData} />
       <Scrollbar>
         <Box sx={{ minWidth: 800, padding: 2 }}>
           <StripedDataGrid

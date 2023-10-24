@@ -95,7 +95,6 @@ export default function CdjImport() {
             enqueueSnackbar(data.data.status, {
                 variant: 'success', anchorOrigin: { horizontal: 'center', vertical: 'top' }, autoHideDuration: 3000
             });
-            // handleClick();
             handleRefetch();
             handleClose();
         },

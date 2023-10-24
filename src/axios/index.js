@@ -1,8 +1,8 @@
 import axios from 'axios'
 import { toast } from 'react-toastify';
 
-// const LOCAL_API_URL = 'http://127.0.0.1:8000/api/v1/'
-const LOCAL_API_URL = 'http://crg-co2-21-0079:8000/api/v1/'
+const LOCAL_API_URL = 'http://127.0.0.1:8000/api/v1/'
+// const LOCAL_API_URL = 'http://crg-co2-21-0079:8000/api/v1/'
 const HOSTED_API_URL = ''
 const CURRENT_API_URL = LOCAL_API_URL
 

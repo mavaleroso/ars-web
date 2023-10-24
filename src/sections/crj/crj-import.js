@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useCallback, useState } from 'react';
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Button from '@mui/material/Button';
 import { styled } from '@mui/material/styles';
 import Dialog from '@mui/material/Dialog';
@@ -26,9 +26,14 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     },
 }));
 
-export default function CrjImport({ handleClick }) {
+export default function CrjImport() {
     const [open, setOpen] = React.useState(false);
     const { enqueueSnackbar } = useSnackbar();
+    const queryClient = useQueryClient();
+
+    const handleRefetch = () => {
+        queryClient.invalidateQueries('crj');
+    };
 
     const formik = useFormik({
         initialValues: {
@@ -90,7 +95,7 @@ export default function CrjImport({ handleClick }) {
             enqueueSnackbar(data.data.status, {
                 variant: 'success', anchorOrigin: { horizontal: 'right', vertical: 'bottom' }, autoHideDuration: 3000
             });
-            handleClick();
+            handleRefetch();
             handleClose();
         },
         onError: () => {

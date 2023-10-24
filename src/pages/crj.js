@@ -5,6 +5,7 @@ import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIc
 import { Box, Button, Container, Stack, SvgIcon, Typography } from '@mui/material';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import CrjImport from 'src/sections/crj/crj-import';
+import { CrjTable } from 'src/sections/crj/crj-table';
 
 const Page = () => {
     return (
@@ -51,6 +52,7 @@ const Page = () => {
                                 </Stack>
                             </Stack>
                         </Stack>
+                        <CrjTable />
                     </Stack>
                 </Container>
             </Box>
