@@ -20,7 +20,7 @@ export const items = [
     )
   },
   {
-    title: 'CRJ',
+    title: 'Cash Receipts Journal',
     path: '/crj',
     icon: (
       <SvgIcon fontSize="small">
@@ -29,8 +29,17 @@ export const items = [
     )
   },
   {
-    title: 'CDJ',
+    title: 'Cash Disbursement Journal',
     path: '/cdj',
+    icon: (
+      <SvgIcon fontSize="small">
+        <FolderIcon />
+      </SvgIcon>
+    )
+  },
+  {
+    title: 'General Journal',
+    path: '/gj',
     icon: (
       <SvgIcon fontSize="small">
         <FolderIcon />
