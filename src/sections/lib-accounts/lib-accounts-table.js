@@ -80,6 +80,7 @@ export const LibAccountsTable = () => {
 
   const handleFetchAccount = (id) => {
     fetchAccountData(id).then(res => {
+      console.log(res.data);
       setAccountData(res.data);
       setAccountsEditOpen(true);
     });

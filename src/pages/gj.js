@@ -9,8 +9,8 @@ import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
-import GjTable from 'src/sections/gj/gj-table';
 import GjImport from 'src/sections/gj/gj-import';
+import { GjTable } from 'src/sections/gj/gj-table';
 
 const Page = () => {
     const [value, setValue] = React.useState('1');
@@ -63,38 +63,7 @@ const Page = () => {
                                 </Stack>
                             </Stack>
                         </Stack>
-                        <Card sx={{ p: 2 }}>
-                            <OutlinedInput
-                                defaultValue=""
-                                fullWidth
-                                placeholder="Search general Journal"
-                                startAdornment={(
-                                    <InputAdornment position="start">
-                                        <SvgIcon
-                                            color="action"
-                                            fontSize="small"
-                                        >
-                                            <MagnifyingGlassIcon />
-                                        </SvgIcon>
-                                    </InputAdornment>
-                                )}
-                                sx={{ maxWidth: 500 }}
-                            />
-                        </Card>
-                        <Card sx={{ p: 2 }}>
-                            <TabContext value={value}>
-                                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                    <TabList onChange={handleChange} aria-label="lab API tabs example">
-                                        <Tab label="Overview" value="1" />
-                                        <Tab label="Import History" value="2" />
-                                    </TabList>
-                                </Box>
-                                <TabPanel value="1">
-                                    <GjTable />
-                                </TabPanel>
-                                <TabPanel value="2">Item Two</TabPanel>
-                            </TabContext>
-                        </Card>
+                        <GjTable />
                     </Stack>
                 </Container>
             </Box>
